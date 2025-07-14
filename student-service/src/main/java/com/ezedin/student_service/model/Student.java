@@ -1,5 +1,6 @@
 package com.ezedin.student_service.model;
 
+import com.ezedin.student_service.model.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class Student {
     private String name;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Column(nullable = false)
@@ -25,5 +27,7 @@ public class Student {
 
     @Column(nullable = false)
     private String phone_no;
+
+    private Grade grade;
 
 }
