@@ -1,6 +1,7 @@
 package com.ezedin.student_service.model;
 
 import com.ezedin.student_service.model.enums.Gender;
+import com.ezedin.student_service.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder
 @Entity
 public class Student {
     @Id
@@ -17,6 +19,13 @@ public class Student {
 
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -28,6 +37,10 @@ public class Student {
     @Column(nullable = false)
     private String phone_no;
 
+    @ManyToOne(fetch = FetchType.LAZY)
     private Grade grade;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Section section;
 
 }
