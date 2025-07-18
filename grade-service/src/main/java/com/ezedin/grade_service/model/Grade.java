@@ -1,22 +1,36 @@
 package com.ezedin.grade_service.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.ezedin.grade_service.model.enums.GradeTitle;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity
 public class Grade {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private Long studentId;
-    private String name;
+
+    @Column(nullable = false)
+    private String courseTitle;
+
+    @Column(nullable = false)
+    private Long teacherID;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private GradeTitle gradeTitle;
+
+    @Column(nullable = false)
+    private Float score;
 
 }
