@@ -1,12 +1,17 @@
 package com.ezedin.student_service.service;
 
+import com.ezedin.student_service.config.courses;
+import com.ezedin.student_service.model.Course;
 import com.ezedin.student_service.model.Dto.studentRequest;
 import com.ezedin.student_service.model.Dto.studentResponse;
 import com.ezedin.student_service.model.Student;
+import com.ezedin.student_service.model.enums.GradeName;
 import com.ezedin.student_service.repository.studentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +20,7 @@ import java.util.stream.Collectors;
 public class studentService {
 
     private final studentRepository repository;
+    private final courses courses;
 
     private Student mapToDto (studentRequest studentRequest) {
         return Student.builder()
@@ -37,6 +43,7 @@ public class studentService {
                 .role(student.getRole())
                 .phone_no(student.getPhone_no())
                 .section(student.getSection())
+                .courses(student.getCourses())
                 .build();
     }
 
@@ -44,6 +51,27 @@ public class studentService {
     public studentResponse createStudent (studentRequest studentRequest) {
 
         Student student = mapToDto(studentRequest);
+        List<String> defaultCourses;
+
+        GradeName grade = studentRequest.getGrade();
+
+        if (EnumSet.of(GradeName.Grade_1, GradeName.Grade_2, GradeName.Grade_3, GradeName.Grade_4).contains(grade)) {
+            defaultCourses = courses.getOneToFour();
+        } else if (EnumSet.of(GradeName.Grade_5, GradeName.Grade_6).contains(grade)) {
+            defaultCourses = courses.getFiveToSix();
+        } else if (EnumSet.of(GradeName.Grade_7, GradeName.Grade_8).contains(grade)) {
+            defaultCourses = courses.getSevenToEight();
+        } else {
+            defaultCourses = List.of(); // empty list if no match
+        }
+
+
+        for (String title : defaultCourses) {
+            Course course = new Course();
+            course.setTitle(title);
+            student.addCourse(course);
+        }
+
         return mapToStudent(repository.save(student));
     }
     public List<studentResponse> getAllStudent () {
