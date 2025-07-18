@@ -16,6 +16,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>student-service</module>
+        <module>grade-service</module>
     </modules>
     <url/>
     <licenses>
