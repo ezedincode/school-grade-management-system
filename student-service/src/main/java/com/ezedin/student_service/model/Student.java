@@ -1,7 +1,9 @@
 package com.ezedin.student_service.model;
 
 import com.ezedin.student_service.model.enums.Gender;
+import com.ezedin.student_service.model.enums.GradeName;
 import com.ezedin.student_service.model.enums.Role;
+import com.ezedin.student_service.model.enums.SectionName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,10 +39,19 @@ public class Student {
     @Column(nullable = false)
     private String phone_no;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Grade grade;
+//    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+//    @JoinColumn(name="grade_id")
+//    private Grade grade;
+//
+//    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+//    @JoinColumn(name="section_id")
+//    private Section section;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private GradeName grade;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Section section;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SectionName section;
 
 }

@@ -1,45 +1,49 @@
 package com.ezedin.student_service.controller;
 
+import com.ezedin.student_service.model.Dto.studentRequest;
 import com.ezedin.student_service.model.Dto.studentResponse;
+import com.ezedin.student_service.service.studentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+//import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("api/student/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('Admin')")
+//@PreAuthorize("hasRole('Admin')")
 public class adminStudentController {
+
+    private final studentService service;
+
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public studentResponse createStudent (@RequestBody studentResponse student) {
-        return null;
+    public studentResponse createStudent (@RequestBody studentRequest student) {
+        return service.createStudent(student);
     }
 
     @PostMapping("/remove/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public studentResponse removeStudent (@PathVariable("id") Long id) {
-        return null;
+        return service.RemoveStudent(id);
     }
 
     @GetMapping("/students")
     @ResponseStatus(HttpStatus.OK)
     public List<studentResponse> getAllStudent () {
-        return null;
+        return service.getAllStudent();
     }
 
-    @GetMapping("/student/{id}")
+    @GetMapping("/student/id/{id}")
     @ResponseStatus(HttpStatus.OK)
     public studentResponse getStudentById (@PathVariable("id") Long id) {
-        return null;
+        return service.getStudentById(id);
     }
-    @GetMapping("/student/{name}")
+    @GetMapping("/student/name/{name}")
     @ResponseStatus(HttpStatus.OK)
-    public studentResponse getStudentByName (@PathVariable("name") Long id) {
-        return null;
+    public studentResponse getStudentByName (@PathVariable("name") String name) {
+        return service.getStudentByName(name);
     }
 
 }

@@ -1,10 +1,14 @@
 package com.ezedin.student_service.service;
 
+import com.ezedin.student_service.model.Dto.studentRequest;
 import com.ezedin.student_service.model.Dto.studentResponse;
 import com.ezedin.student_service.model.Student;
 import com.ezedin.student_service.repository.studentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -12,7 +16,7 @@ public class studentService {
 
     private final studentRepository repository;
 
-    private Student mapToDto (Student studentRequest) {
+    private Student mapToDto (studentRequest studentRequest) {
         return Student.builder()
                 .age(studentRequest.getAge())
                 .name(studentRequest.getName())
@@ -37,10 +41,16 @@ public class studentService {
     }
 
 
-    public studentResponse createStudent (Student studentRequest) {
+    public studentResponse createStudent (studentRequest studentRequest) {
 
         Student student = mapToDto(studentRequest);
         return mapToStudent(repository.save(student));
+    }
+    public List<studentResponse> getAllStudent () {
+        return repository.findAll()
+                .stream()
+                .map(this::mapToStudent)
+                .collect(Collectors.toList());
     }
     public studentResponse RemoveStudent (Long id) {
             Student student = repository.findById(id).orElse(null);
@@ -55,13 +65,13 @@ public class studentService {
         if(student != null) {
             return mapToStudent(student);
         }
-        return null;
+        return new studentResponse();
     }
     public studentResponse getStudentByName (String name) {
         Student student = repository.findByName(name);
         if(student != null) {
             return mapToStudent(student);
         }
-        return null;
+        return new studentResponse();
     }
 }
