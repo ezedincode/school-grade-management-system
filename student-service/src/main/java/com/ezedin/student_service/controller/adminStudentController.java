@@ -35,12 +35,12 @@ public class adminStudentController {
         return service.getAllStudent();
     }
 
-    @GetMapping("/student/id/{id}")
+    @GetMapping("id/{id}")
     @ResponseStatus(HttpStatus.OK)
     public studentResponse getStudentById (@PathVariable("id") Long id) {
         return service.getStudentById(id);
     }
-    @GetMapping("/student/name/{name}")
+    @GetMapping("/name/{name}")
     @ResponseStatus(HttpStatus.OK)
     public studentResponse getStudentByName (@PathVariable("name") String name) {
         return service.getStudentByName(name);

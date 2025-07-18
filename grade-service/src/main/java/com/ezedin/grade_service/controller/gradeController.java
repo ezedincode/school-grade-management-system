@@ -1,6 +1,6 @@
 package com.ezedin.grade_service.controller;
 
-import com.ezedin.grade_service.model.Grade;
+import com.ezedin.grade_service.model.dto.gradeRequest;
 import com.ezedin.grade_service.model.dto.gradeResponse;
 import com.ezedin.grade_service.service.gradeService;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +14,7 @@ public class gradeController {
     private final gradeService service;
 
     @PostMapping("")
-    public gradeResponse createGrade(@RequestBody Grade grade) {
-        service.
-
+    public gradeResponse createGrade(@RequestBody gradeRequest grade) {
+        return service.createGrade(grade);
     }
-
 }

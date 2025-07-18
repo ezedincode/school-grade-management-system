@@ -10,7 +10,7 @@ public class configuration {
     @Bean
     public WebClient studentWebClient(){
         return WebClient.builder()
-                .baseUrl("http://localhost:8088") // Replace with Student Service base URL
+                .baseUrl("http://localhost:8080") // Replace with Student Service base URL
                 .build();
     }
     @Bean
