@@ -1,10 +1,14 @@
 package com.ezedin.teacher_service.controller;
 
+import com.ezedin.teacher_service.model.GradeSection;
+import com.ezedin.teacher_service.model.dto.gradeSectionResponse;
 import com.ezedin.teacher_service.model.dto.teacherRequest;
 import com.ezedin.teacher_service.model.dto.teacherResponse;
 import com.ezedin.teacher_service.service.teacherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,7 +22,7 @@ public class teacherController {
         return service.create(request);
     }
     @GetMapping("/{id}")
-    public teacherResponse getGradeSectionByTeacherId (@PathVariable("id") Long id){
+    public List<gradeSectionResponse> getGradeSectionByTeacherId (@PathVariable("id") Long id){
         return service.getGradeSectionByTeacherId(id);
     }
 }

@@ -8,8 +8,11 @@ import com.ezedin.grade_service.model.dto.teacherResponse;
 import com.ezedin.grade_service.repository.gradeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -42,27 +45,32 @@ public class gradeService {
                 .bodyToMono(studentResponse.class)
                 .block();
     }
-    public teacherResponse getTeacher(Long teacherId) {
+    public List<teacherResponse> getTeacher(Long teacherId) {
+
         return teacherWebClient.get()
                 .uri("/api/teacher/{id}", teacherId)
                 .retrieve()
-                .bodyToMono(teacherResponse.class)
+                .bodyToMono(new ParameterizedTypeReference<List<teacherResponse>>() {})
                 .block();
     }
 
         public gradeResponse createGrade (gradeRequest request) {
         Grade grade = mapToDto(request);
         studentResponse student = getStudent(grade.getStudentId());
-        teacherResponse teacher = getTeacher(grade.getTeacherID());
-        if(student.getGrade() == teacher.getGrade()
-                && student.getSection() == teacher.getSection()
+        List<teacherResponse> teachers = getTeacher(grade.getTeacherID());
+        boolean foundGradeMatch =teachers.stream()
+                .anyMatch(e ->e.getGrade().equals(student.getGrade()));
+        boolean foundSectionMatch =teachers.stream()
+                    .anyMatch(e ->e.getSection().equals(student.getSection()));
+        if(foundGradeMatch && foundSectionMatch
                 && grade.getCourseTitle() != null
                 && grade.getScore() != null )
         {
             repository.save(grade);
         }
-            log.info("student: {}", student);
-            repository.save(grade);
+            log.info("student: {}", student.getGrade());
+            log.info("teacher: {}", teachers);
+
         return mapToGrade(grade);
 
         }

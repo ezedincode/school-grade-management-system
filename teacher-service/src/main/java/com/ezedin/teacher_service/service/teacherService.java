@@ -2,12 +2,17 @@ package com.ezedin.teacher_service.service;
 
 import com.ezedin.teacher_service.model.GradeSection;
 import com.ezedin.teacher_service.model.Teacher;
+import com.ezedin.teacher_service.model.dto.gradeSectionResponse;
 import com.ezedin.teacher_service.model.dto.teacherRequest;
 import com.ezedin.teacher_service.model.dto.teacherResponse;
 import com.ezedin.teacher_service.repository.gradeSectionRepository;
 import com.ezedin.teacher_service.repository.teacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,13 @@ public class teacherService {
                 .role(teacher.getRole())
                 .build();
     }
+    private gradeSectionResponse mapToGradeSection (GradeSection gradeSection) {
+        return gradeSectionResponse.builder()
+                .grade(gradeSection.getGrade())
+                .section(gradeSection.getSection())
+                .build();
+    }
+
 
     public teacherResponse create (teacherRequest teacherRequest) {
         Teacher teacher =mapToDto(teacherRequest);
@@ -43,11 +55,11 @@ public class teacherService {
         TeacherRepository.save(teacher);
         return mapToTeacher(teacher);
     }
-    public teacherResponse getGradeSectionByTeacherId (Long id) {
-        GradeSection gradeSection=GradeSectionRepository.findByTeacherId(id);
-        Teacher teacher=TeacherRepository.findById(gradeSection.getTeacher().getId()).orElse(new Teacher());
-
-        return mapToTeacher(teacher);
+    public List<gradeSectionResponse> getGradeSectionByTeacherId (Long id) {
+           return GradeSectionRepository.findAllByTeacherId(id)
+                   .stream()
+                   .map(this::mapToGradeSection)
+                   .toList();
     }
 
     }
