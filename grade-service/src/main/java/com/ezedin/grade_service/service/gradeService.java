@@ -53,14 +53,14 @@ public class gradeService {
         public gradeResponse createGrade (gradeRequest request) {
         Grade grade = mapToDto(request);
         studentResponse student = getStudent(grade.getStudentId());
-//        teacherResponse teacher = getTeacher(grade.getTeacherID());
-//        if(student.getGrade() == teacher.getGrade()
-//                && student.getSection() == teacher.getSection()
-//                && grade.getCourseTitle() != null
-//                && grade.getScore() != null )
-//        {
-//            repository.save(grade);
-//        }
+        teacherResponse teacher = getTeacher(grade.getTeacherID());
+        if(student.getGrade() == teacher.getGrade()
+                && student.getSection() == teacher.getSection()
+                && grade.getCourseTitle() != null
+                && grade.getScore() != null )
+        {
+            repository.save(grade);
+        }
             log.info("student: {}", student);
             repository.save(grade);
         return mapToGrade(grade);
