@@ -6,6 +6,7 @@ import com.ezedin.student_service.model.Dto.studentRequest;
 import com.ezedin.student_service.model.Dto.studentResponse;
 import com.ezedin.student_service.model.Student;
 import com.ezedin.student_service.model.enums.GradeName;
+import com.ezedin.student_service.model.enums.SectionName;
 import com.ezedin.student_service.repository.studentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -102,4 +103,11 @@ public class studentService {
         }
         return new studentResponse();
     }
+    public List<studentResponse> getStudentByGradeAndSection(GradeName grade, SectionName section) {
+        return repository.findAllByGradeAndSection(grade.name(),section.name())
+                .stream()
+                .map(this::mapToStudent)
+                .collect(Collectors.toList());
+    }
+
 }

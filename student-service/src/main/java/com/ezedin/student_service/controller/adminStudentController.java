@@ -2,6 +2,8 @@ package com.ezedin.student_service.controller;
 
 import com.ezedin.student_service.model.Dto.studentRequest;
 import com.ezedin.student_service.model.Dto.studentResponse;
+import com.ezedin.student_service.model.enums.GradeName;
+import com.ezedin.student_service.model.enums.SectionName;
 import com.ezedin.student_service.service.studentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -44,6 +46,15 @@ public class adminStudentController {
     @ResponseStatus(HttpStatus.OK)
     public studentResponse getStudentByName (@PathVariable("name") String name) {
         return service.getStudentByName(name);
+    }
+
+    @GetMapping("/{grade}/{section}")
+    @ResponseStatus(HttpStatus.OK)
+    public List <studentResponse> getStudentByGradeAndSection (
+            @PathVariable("grade") GradeName grade,
+            @PathVariable("section")SectionName section
+    ) {
+        return service.getStudentByGradeAndSection(grade,section);
     }
 
 }
