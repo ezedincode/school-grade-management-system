@@ -17,6 +17,9 @@
     <modules>
         <module>student-service</module>
         <module>grade-service</module>
+        <module>teacher-service</module>
+        <module>auth-service</module>
+
     </modules>
     <url/>
     <licenses>
@@ -41,11 +44,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -66,6 +64,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>1.18.28</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

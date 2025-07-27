@@ -6,9 +6,8 @@
 		<groupId>com.ezedin</groupId>
 		<artifactId>GradePilot</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ezedin</groupId>
+
 	<artifactId>grade-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>grade-service</name>

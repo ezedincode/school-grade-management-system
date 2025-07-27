@@ -1,5 +1,5 @@
-package com.ezedin.grade_service.model.enums;
+package com.ezedin.auth_service.model.enums;
 
 public enum Role {
-    Student
+    Student,Teacher,Admin
 }
