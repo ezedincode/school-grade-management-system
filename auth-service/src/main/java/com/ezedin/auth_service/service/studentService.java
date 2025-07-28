@@ -33,6 +33,7 @@ public class studentService {
             event.setGender(student.getGender());
             event.setPhone_no(student.getPhone_no());
             event.setSection(student.getSection());
+            event.setPassword(student.getPassword());
             kafkaTemplate.send("student-registration-topic",event);
 
         }catch (UserNameExistException e){
@@ -49,7 +50,7 @@ public class studentService {
            throw new UserNameExistException("User name exist");
        }
            if (
-                    request.getAge() != 0
+                    request.getAge() == 0
                     || request.getName() == null
                     || request.getSection() == null
                     || request.getPassword() == null

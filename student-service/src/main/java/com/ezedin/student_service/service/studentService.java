@@ -2,6 +2,7 @@ package com.ezedin.student_service.service;
 
 import com.ezedin.student_service.config.courses;
 import com.ezedin.student_service.model.Course;
+import com.ezedin.student_service.model.Dto.studentRegisteredEvent;
 import com.ezedin.student_service.model.Dto.studentRequest;
 import com.ezedin.student_service.model.Dto.studentResponse;
 import com.ezedin.student_service.model.Student;
@@ -9,6 +10,7 @@ import com.ezedin.student_service.model.enums.GradeName;
 import com.ezedin.student_service.model.enums.SectionName;
 import com.ezedin.student_service.repository.studentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -48,6 +50,23 @@ public class studentService {
                 .build();
     }
 
+    @KafkaListener(topics = "student-registration-topic", groupId = "student-group")
+    public void handleStudentRegistration(studentRegisteredEvent event) {
+        Student student = new Student();
+
+        student.setName(event.getName());
+        student.setAge(event.getAge());
+        student.setGender(event.getGender());
+        student.setGrade(event.getGrade());
+        student.setPhone_no(event.getPhone_no());
+        student.setSection(event.getSection());
+        student.setRole(event.getRole());
+        student.setPassword(event.getPassword());
+
+        repository.save(student);
+
+        System.out.println("🎉 Student saved from Kafka event: " + student.getName());
+    }
 
     public studentResponse createStudent (studentRequest studentRequest) {
 

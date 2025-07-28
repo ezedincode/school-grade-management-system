@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "users")
 public class User {
 
     @Id
@@ -23,7 +24,7 @@ public class User {
     private Role role;
 
     @Column(nullable = false)
-    private String UserName;
+    private String userName;
 
     @Column(nullable = false)
     private String Password;

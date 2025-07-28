@@ -18,10 +18,10 @@ import java.util.Map;
 public class studentController {
     private final studentService service;
 
-   // @PostMapping("/signup/student")
-//    public ResponseEntity <Map<String,String>> registerStudent(@RequestBody studentRegistrationRequest student) {
-//
-//    }
+    @PostMapping("/signup/student")
+   public ResponseEntity <Map<String,String>> registerStudent(@RequestBody studentRegistrationRequest student) {
+        return service.registerStudent(student);
+ }
 
 
 
