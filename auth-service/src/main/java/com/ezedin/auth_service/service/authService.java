@@ -5,6 +5,7 @@ import com.ezedin.auth_service.model.dto.studentRegisteredEvent;
 import com.ezedin.auth_service.model.dto.studentRegistrationRequest;
 import com.ezedin.auth_service.repository.userRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,8 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class studentService {
+@Slf4j
+public class authService {
     private final userRepository repository;
     private final KafkaTemplate <String,studentRegisteredEvent> kafkaTemplate;
 
@@ -25,15 +27,7 @@ public class studentService {
 
         try {
             User Saveduser= saveUser(student);
-            studentRegisteredEvent event =new studentRegisteredEvent();
-            event.setRole(student.getRole());
-            event.setAge(student.getAge());
-            event.setName(student.getName());
-            event.setGrade(student.getGrade());
-            event.setGender(student.getGender());
-            event.setPhone_no(student.getPhone_no());
-            event.setSection(student.getSection());
-            event.setPassword(student.getPassword());
+            studentRegisteredEvent event = getStudentRegisteredEvent(student,Saveduser);
             kafkaTemplate.send("student-registration-topic",event);
 
         }catch (UserNameExistException e){
@@ -45,6 +39,22 @@ public class studentService {
         }
         return  ResponseEntity.ok(Map.of("status","Success","message","User registered"));
     }
+
+    private static studentRegisteredEvent getStudentRegisteredEvent(studentRegistrationRequest student,User user) {
+        studentRegisteredEvent event =new studentRegisteredEvent();
+        event.setRole(student.getRole());
+        event.setAge(student.getAge());
+        event.setName(student.getName());
+        event.setGrade(student.getGrade());
+        event.setGender(student.getGender());
+        event.setPhone_no(student.getPhone_no());
+        event.setSection(student.getSection());
+        event.setPassword(student.getPassword());
+        event.setStudentId(user.getUserId());
+        log.info("userId {}",user.getUserId());
+        return event;
+    }
+
     public User saveUser (studentRegistrationRequest request) throws UserNameExistException {
        if(repository.findByUserName(request.getUserName()) != null) {
            throw new UserNameExistException("User name exist");

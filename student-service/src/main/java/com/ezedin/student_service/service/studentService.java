@@ -10,6 +10,7 @@ import com.ezedin.student_service.model.enums.GradeName;
 import com.ezedin.student_service.model.enums.SectionName;
 import com.ezedin.student_service.repository.studentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class studentService {
@@ -35,6 +37,7 @@ public class studentService {
                 .phone_no(studentRequest.getPhone_no())
                 .section(studentRequest.getSection())
                 .password(studentRequest.getPassword())
+                .id(studentRequest.getId())
                 .build();
     }
     private studentResponse mapToStudent (Student student) {
@@ -47,6 +50,20 @@ public class studentService {
                 .phone_no(student.getPhone_no())
                 .section(student.getSection())
                 .courses(student.getCourses())
+                .build();
+    }
+    private studentRequest mapToRequest (Student student) {
+        return studentRequest.builder()
+                .age(student.getAge())
+                .name(student.getName())
+                .gender(student.getGender())
+                .grade(student.getGrade())
+                .role(student.getRole())
+                .phone_no(student.getPhone_no())
+                .section(student.getSection())
+                .courses(student.getCourses())
+                .id(student.getId())
+                .password(student.getPassword())
                 .build();
     }
 
@@ -62,8 +79,9 @@ public class studentService {
         student.setSection(event.getSection());
         student.setRole(event.getRole());
         student.setPassword(event.getPassword());
-
-        repository.save(student);
+        student.setId(event.getStudentId());
+log.info("UserId first {}",student.getId());
+        createStudent(mapToRequest(student));
 
         System.out.println("🎉 Student saved from Kafka event: " + student.getName());
     }
@@ -82,7 +100,7 @@ public class studentService {
         } else if (EnumSet.of(GradeName.Grade_7, GradeName.Grade_8).contains(grade)) {
             defaultCourses = courses.getSevenToEight();
         } else {
-            defaultCourses = List.of(); // empty list if no match
+            defaultCourses = List.of();
         }
 
 
@@ -91,7 +109,7 @@ public class studentService {
             course.setTitle(title);
             student.addCourse(course);
         }
-
+log.info("userId {}",student.getId());
         return mapToStudent(repository.save(student));
     }
     public List<studentResponse> getAllStudent () {

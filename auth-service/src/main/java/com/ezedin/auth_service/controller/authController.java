@@ -1,8 +1,7 @@
 package com.ezedin.auth_service.controller;
 
-import com.ezedin.auth_service.model.dto.studentRegisteredEvent;
 import com.ezedin.auth_service.model.dto.studentRegistrationRequest;
-import com.ezedin.auth_service.service.studentService;
+import com.ezedin.auth_service.service.authService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +14,8 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/auth")
-public class studentController {
-    private final studentService service;
+public class authController {
+    private final authService service;
 
     @PostMapping("/signup/student")
    public ResponseEntity <Map<String,String>> registerStudent(@RequestBody studentRegistrationRequest student) {

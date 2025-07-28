@@ -20,5 +20,4 @@ public class studentRegistrationRequest {
 
     private String password;
     private String userName;
-    private Long userId;
 }
