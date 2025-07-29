@@ -36,7 +36,6 @@ public class studentService {
                 .role(studentRequest.getRole())
                 .phone_no(studentRequest.getPhone_no())
                 .section(studentRequest.getSection())
-                .password(studentRequest.getPassword())
                 .id(studentRequest.getId())
                 .build();
     }
@@ -63,7 +62,6 @@ public class studentService {
                 .section(student.getSection())
                 .courses(student.getCourses())
                 .id(student.getId())
-                .password(student.getPassword())
                 .build();
     }
 
@@ -78,12 +76,9 @@ public class studentService {
         student.setPhone_no(event.getPhone_no());
         student.setSection(event.getSection());
         student.setRole(event.getRole());
-        student.setPassword(event.getPassword());
         student.setId(event.getStudentId());
-log.info("UserId first {}",student.getId());
         createStudent(mapToRequest(student));
 
-        System.out.println("🎉 Student saved from Kafka event: " + student.getName());
     }
 
     public studentResponse createStudent (studentRequest studentRequest) {

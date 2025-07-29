@@ -1,28 +1,20 @@
 package com.ezedin.teacher_service.model.dto;
 
+
 import com.ezedin.teacher_service.model.GradeSection;
 import com.ezedin.teacher_service.model.enums.GradeName;
 import com.ezedin.teacher_service.model.enums.Role;
 import com.ezedin.teacher_service.model.enums.SectionName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Builder
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-
-public class teacherRequest {
+public class teacherRegisteredEvent {
     private Long teacherId;
     private String name;
-
     private String phone_no;
-
     private Role role;
-
-    private List<GradeSection> gradeSections;
+   private List<GradeSection> gradeSections;
 }

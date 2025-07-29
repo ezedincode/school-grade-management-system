@@ -18,11 +18,11 @@ import java.util.List;
 @NoArgsConstructor
 public class Teacher {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Column(nullable = false)
@@ -30,8 +30,7 @@ public class Teacher {
 
     @OneToMany(mappedBy = "teacher" ,cascade = CascadeType.ALL ,orphanRemoval = true)
     @JsonManagedReference
-    @Builder.Default
-    private List<GradeSection> gradeSections = new ArrayList<>();
+    private List<GradeSection> gradeSections;
 
     public void addGradeSection(GradeSection gradeSection) {
         gradeSection.setTeacher(this);

@@ -21,7 +21,7 @@ public class teacherController {
     private final teacherService service;
     @PostMapping("/create")
     public teacherResponse create (@RequestBody teacherRequest request){
-        return service.create(request);
+        return null;
     }
     @GetMapping("/{id}")
     public List<gradeSectionResponse> getGradeSectionByTeacherId (@PathVariable("id") Long id){

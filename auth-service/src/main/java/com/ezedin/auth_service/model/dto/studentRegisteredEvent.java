@@ -22,5 +22,4 @@ public class studentRegisteredEvent {
     private SectionName section;
     private GradeName grade;
     private Role role;
-    private String password;
 }

@@ -18,9 +18,10 @@ public class GradeSection {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
+    @Enumerated(EnumType.STRING)
     private GradeName grade;
 
+    @Enumerated(EnumType.STRING)
     private SectionName section;
 
     @ManyToOne
