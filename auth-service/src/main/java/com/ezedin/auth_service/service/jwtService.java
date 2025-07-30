@@ -18,7 +18,7 @@ import java.util.UUID;
 public class jwtService {
 
     @Value("${Access_Token_Expiration_Time}")
-    private int ExpirationTime;
+    private Long ExpirationTime;
 
     @Value("${SECRET_KEY}")
     private String SECRET_KEY;
@@ -70,6 +70,11 @@ public class jwtService {
     private Key getSignkey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String extractUserId( String Token) {
+        return extractAllClaims(Token).getSubject();
+
     }
 }
 

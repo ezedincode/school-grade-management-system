@@ -61,6 +61,19 @@ public class authService {
         User user = repository.findByUserName(request.getUserName());
         return mapToResponse(user);
     }
+    public void logOut (String authHeader){
+        String token = authHeader.substring(7);
+        String jti = jwtService.extractJti(token);
+        String username = jwtService.extractUserId(token);
+        User user =repository.findByUserName(username);
+        Long userId=0L;
+        if(user != null){
+             userId =user.getUserId();
+        }
+        log.info("logged out {}",userId);
+        redisService.revokeAccessToken(jti);
+        redisService.revokeRefreshToken(userId.toString());
+    }
 
     private static studentRegisteredEvent getStudentRegisteredEvent(studentRegistrationRequest student,authenticationResponse user) {
         studentRegisteredEvent event =new studentRegisteredEvent();
@@ -87,9 +100,9 @@ public class authService {
         return event;
     }
     @Value("${Access_Token_Expiration_Time}")
-    private int  ExpirationTime;
+    private Long  ExpirationTime;
     @Value("${Refresh_Token_Expiration_Time}")
-    private int  refreshTokenExpirationTime;
+    private Long  refreshTokenExpirationTime;
     public authenticationResponse mapToResponse(User user) {
        authenticationResponse response= authenticationResponse .builder()
                  .accessToken(jwtService.generateToken(new HashMap<>(),user))

@@ -92,7 +92,7 @@ public class configuration {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->authorize
-                        .requestMatchers("/api/auth/signup/student")
+                        .requestMatchers("/api/auth/**","/api/auth/logout")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

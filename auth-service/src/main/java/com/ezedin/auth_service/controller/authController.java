@@ -7,6 +7,7 @@ import com.ezedin.auth_service.model.dto.authenticationResponse;
 import com.ezedin.auth_service.model.dto.studentRegistrationRequest;
 import com.ezedin.auth_service.model.dto.teacherRegistrationRequest;
 import com.ezedin.auth_service.service.authService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,16 @@ public class authController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("accessToken", response.getAccessToken(),"refreshToken", response.getRefreshToken()));
     }
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing or invalid Authorization header");
+        }
+        service.logOut(authHeader);
+        return ResponseEntity.ok("Logged out successfully");
+    }
     @PostMapping("/signup/teacher")
     public ResponseEntity <Map<String,String>> registerTeacher(@RequestBody teacherRegistrationRequest teacher) {
         authenticationResponse response;
@@ -42,7 +53,7 @@ public class authController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("accessToken", response.getAccessToken(),"refreshToken", response.getRefreshToken()));
     }
-    @GetMapping("/login/user")
+    @PostMapping("/login/user")
     public ResponseEntity <Map<String,String>> authenticate(@RequestBody authenticationRequest user) {
         authenticationResponse response=service.authenticate(user);
 

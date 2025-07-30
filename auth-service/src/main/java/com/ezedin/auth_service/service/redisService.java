@@ -13,12 +13,13 @@ public class redisService {
 
 
 
-    public void storeAccessToken(String jti, String userId, int expirationSeconds) {
+    public void storeAccessToken(String jti, String userId, Long expirationSeconds) {
         String key = "access:" + jti;
         redisTemplate.opsForValue().set(key, userId, expirationSeconds, TimeUnit.SECONDS);
     }
 
-    public void storeRefreshToken(String userId, String refreshToken, long expirationSeconds) {
+
+    public void storeRefreshToken(String userId, String refreshToken, Long expirationSeconds) {
         String key = "refresh:" + userId;
         redisTemplate.opsForValue().set(key, refreshToken, expirationSeconds, TimeUnit.SECONDS);
     }
