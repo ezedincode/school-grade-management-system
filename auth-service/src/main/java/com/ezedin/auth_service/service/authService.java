@@ -6,6 +6,7 @@ import com.ezedin.auth_service.model.dto.*;
 import com.ezedin.auth_service.repository.userRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,7 @@ public class authService {
     private final jwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final redisService redisService;
 
 
     public  authenticationResponse registerStudent(studentRegistrationRequest student)
@@ -51,13 +53,13 @@ public class authService {
             return savedUser;
 
     }
-    public String authenticate (authenticationRequest request){
+    public authenticationResponse authenticate (authenticationRequest request){
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getUserName(),
                 request.getPassword()
         ));
         User user = repository.findByUserName(request.getUserName());
-        return jwtService.generateToken(new HashMap<>(),user);
+        return mapToResponse(user);
     }
 
     private static studentRegisteredEvent getStudentRegisteredEvent(studentRegistrationRequest student,authenticationResponse user) {
@@ -84,13 +86,20 @@ public class authService {
         log.info("gradeSection {}",event.getGradeSections());
         return event;
     }
-
+    @Value("${Access_Token_Expiration_Time}")
+    private int  ExpirationTime;
+    @Value("${Refresh_Token_Expiration_Time}")
+    private int  refreshTokenExpirationTime;
     public authenticationResponse mapToResponse(User user) {
-        return authenticationResponse .builder()
+       authenticationResponse response= authenticationResponse .builder()
                  .accessToken(jwtService.generateToken(new HashMap<>(),user))
                  .refreshToken(jwtService.generateRefreshToken())
                  .user(user)
                  .build();
+
+        redisService.storeAccessToken(jwtService.extractJti(response.getAccessToken()),user.getUserId().toString(),ExpirationTime);
+        redisService.storeRefreshToken(user.getUserId().toString(),response.getRefreshToken(),refreshTokenExpirationTime);
+        return response;
     }
     public authenticationResponse saveUser (userRegistrationRequest request) throws UserNameExistException, MissingRequiredFieldsException {
        if(repository.findByUserName(request.getUserName()) != null) {

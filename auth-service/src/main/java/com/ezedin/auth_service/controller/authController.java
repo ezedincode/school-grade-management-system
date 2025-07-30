@@ -44,11 +44,9 @@ public class authController {
     }
     @GetMapping("/login/user")
     public ResponseEntity <Map<String,String>> authenticate(@RequestBody authenticationRequest user) {
-        String response=service.authenticate(user);
-        if(response.contains("Error")){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", response));
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Token", response));
+        authenticationResponse response=service.authenticate(user);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("accessToken", response.getAccessToken(),"refreshToken", response.getRefreshToken()));
     }
 
 

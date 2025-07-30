@@ -1,12 +1,12 @@
 package com.ezedin.auth_service.service;
 
 import com.ezedin.auth_service.model.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.security.Key;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -17,16 +17,18 @@ import java.util.UUID;
 @Service
 public class jwtService {
 
-    @Value("${ExpirationTime}")
+    @Value("${Access_Token_Expiration_Time}")
     private int ExpirationTime;
 
     @Value("${SECRET_KEY}")
     private String SECRET_KEY;
     public String generateToken(HashMap<String, Object> extraClaims, User user) {
+        String jti = UUID.randomUUID().toString();
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(user.getUsername())
+                .setId(jti)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + ExpirationTime))
                 .signWith(getSignkey())
@@ -43,20 +45,24 @@ public class jwtService {
        secureRandom.nextBytes(randomBytes);
        return base64Encoder.encodeToString(randomBytes);
     }
+    public String extractJti(String token) {
+        return extractAllClaims(token).getId(); // getId() returns the 'jti' claim
+    }
 
-//    public <T> T extractClaim(String token, Function<Claims ,T> claimResolver) {
+
+    //    public <T> T extractClaim(String token, Function<Claims ,T> claimResolver) {
 //        final Claims claims =extractAllClaims(token);
 //        return claimResolver.apply(claims);
 //    }
 //
-//    private Claims extractAllClaims(String token) {
-//        return Jwts
-//                .parserBuilder()
-//                .setSigningKey(getSignkey())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody();
-//    }
+    private Claims extractAllClaims(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(getSignkey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
 //    public String extractUsername(String token) {
 //        return extractClaim(token, Claims::getSubject);
 //    }
