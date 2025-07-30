@@ -6,18 +6,17 @@ import com.ezedin.auth_service.model.dto.*;
 import com.ezedin.auth_service.repository.userRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.kafka.core.KafkaTemplate;
 import com.ezedin.auth_service.exception.UserNameExistException;
 import com.ezedin.auth_service.model.dto.authenticationResponse;
-
+import org.springframework.security.authentication.AuthenticationManager;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +27,7 @@ public class authService {
     private final KafkaTemplate <String,teacherRegisteredEvent> teacherkafkaTemplate;
     private final jwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
 
     public  String registerStudent(studentRegistrationRequest student){
@@ -55,6 +55,14 @@ public class authService {
         }catch (UserNameExistException | MissingRequiredFieldsException e){
             return  e.getMessage();
         }
+    }
+    public String authenticate (authenticationRequest request){
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                request.getUserName(),
+                request.getPassword()
+        ));
+        User user = repository.findByUserName(request.getUserName());
+        return jwtService.generateToken(new HashMap<>(),user);
     }
 
     private static studentRegisteredEvent getStudentRegisteredEvent(studentRegistrationRequest student,authenticationResponse user) {
@@ -107,4 +115,7 @@ public class authService {
            }
 
 
+    public UserDetails getUserByUserName(String userName) {
+        return repository.findByUserName(userName);
+    }
 }

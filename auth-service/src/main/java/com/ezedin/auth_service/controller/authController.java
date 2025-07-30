@@ -1,15 +1,13 @@
 package com.ezedin.auth_service.controller;
 
+import com.ezedin.auth_service.model.dto.authenticationRequest;
 import com.ezedin.auth_service.model.dto.studentRegistrationRequest;
 import com.ezedin.auth_service.model.dto.teacherRegistrationRequest;
 import com.ezedin.auth_service.service.authService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -30,6 +28,14 @@ public class authController {
     @PostMapping("/signup/teacher")
     public ResponseEntity <Map<String,String>> registerTeacher(@RequestBody teacherRegistrationRequest teacher) {
         String response=service.registerTeacher(teacher);
+        if(response.contains("Error")){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", response));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Token", response));
+    }
+    @GetMapping("/login/user")
+    public ResponseEntity <Map<String,String>> authenticate(@RequestBody authenticationRequest user) {
+        String response=service.authenticate(user);
         if(response.contains("Error")){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", response));
         }

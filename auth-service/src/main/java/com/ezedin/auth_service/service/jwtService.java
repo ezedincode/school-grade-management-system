@@ -2,7 +2,6 @@ package com.ezedin.auth_service.service;
 
 import com.ezedin.auth_service.model.User;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +23,29 @@ public class jwtService {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(user.getUserName())
+                .setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + ExpirationTime))
                 .signWith(getSignkey())
                 .compact();
 
     }
+//    public <T> T extractClaim(String token, Function<Claims ,T> claimResolver) {
+//        final Claims claims =extractAllClaims(token);
+//        return claimResolver.apply(claims);
+//    }
+//
+//    private Claims extractAllClaims(String token) {
+//        return Jwts
+//                .parserBuilder()
+//                .setSigningKey(getSignkey())
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody();
+//    }
+//    public String extractUsername(String token) {
+//        return extractClaim(token, Claims::getSubject);
+//    }
 
     private Key getSignkey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);

@@ -10,3 +10,4 @@ public interface userRegistrationRequest  {
         String getUserName();
         Role getRole();
 }
+
