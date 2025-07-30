@@ -8,8 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Service
 public class jwtService {
@@ -30,6 +33,17 @@ public class jwtService {
                 .compact();
 
     }
+    private static final SecureRandom secureRandom = new SecureRandom();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
+
+    @Value("${REFRESH_TOKEN_BYTE_LENGTH}")
+    private int byteLength;
+    public String generateRefreshToken() {
+       byte[] randomBytes = new byte[byteLength];
+       secureRandom.nextBytes(randomBytes);
+       return base64Encoder.encodeToString(randomBytes);
+    }
+
 //    public <T> T extractClaim(String token, Function<Claims ,T> claimResolver) {
 //        final Claims claims =extractAllClaims(token);
 //        return claimResolver.apply(claims);

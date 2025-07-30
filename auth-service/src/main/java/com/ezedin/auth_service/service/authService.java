@@ -30,31 +30,26 @@ public class authService {
     private final AuthenticationManager authenticationManager;
 
 
-    public  String registerStudent(studentRegistrationRequest student){
+    public  authenticationResponse registerStudent(studentRegistrationRequest student)
+            throws MissingRequiredFieldsException, UserNameExistException {
 
-        try {
+
             authenticationResponse saveUser= saveUser(student);
             studentRegisteredEvent event = getStudentRegisteredEvent(student,saveUser);
             kafkaTemplate.send("student-registration-topic",event);
-            return saveUser.getToken();
-
-        }catch (UserNameExistException | MissingRequiredFieldsException e){
-            return  e.getMessage();
-        }
+            return saveUser;
 
     }
-    public String registerTeacher(teacherRegistrationRequest teacher){
+    public authenticationResponse registerTeacher(teacherRegistrationRequest teacher)
+            throws MissingRequiredFieldsException, UserNameExistException {
 
-        try {
+
             authenticationResponse savedUser= saveUser(teacher);
             teacherRegisteredEvent event = getTeacherRegisteredEvent(teacher,savedUser);
             log.info("check GradeSection {}",event.getGradeSections());
             teacherkafkaTemplate.send("teacher-registration-topic",event);
-            return savedUser.getToken();
+            return savedUser;
 
-        }catch (UserNameExistException | MissingRequiredFieldsException e){
-            return  e.getMessage();
-        }
     }
     public String authenticate (authenticationRequest request){
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -92,7 +87,8 @@ public class authService {
 
     public authenticationResponse mapToResponse(User user) {
         return authenticationResponse .builder()
-                 .Token(jwtService.generateToken(new HashMap<>(),user))
+                 .accessToken(jwtService.generateToken(new HashMap<>(),user))
+                 .refreshToken(jwtService.generateRefreshToken())
                  .user(user)
                  .build();
     }
