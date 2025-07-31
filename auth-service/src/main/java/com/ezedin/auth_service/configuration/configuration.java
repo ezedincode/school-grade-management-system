@@ -28,6 +28,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,11 +89,14 @@ public class configuration {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,AuthenticationProvider authenticationProvider) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthenticationProvider authenticationProvider
+    ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->authorize
-                        .requestMatchers("/api/auth/**","/api/auth/logout")
+                        .requestMatchers("/api/auth/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
@@ -101,7 +105,8 @@ public class configuration {
 
                 .authenticationProvider(authenticationProvider);
         return http.build();
-    }@Bean
+    }
+    @Bean
     public UserDetailsService userDetailsService() {
         return repository::findByUserName;
     }

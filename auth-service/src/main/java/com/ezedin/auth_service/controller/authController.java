@@ -53,7 +53,7 @@ public class authController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("accessToken", response.getAccessToken(),"refreshToken", response.getRefreshToken()));
     }
-    @PostMapping("/login/user")
+    @PostMapping("/login")
     public ResponseEntity <Map<String,String>> authenticate(@RequestBody authenticationRequest user) {
         authenticationResponse response=service.authenticate(user);
 

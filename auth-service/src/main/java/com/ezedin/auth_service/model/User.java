@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private String userName;
 
     @Column(nullable = false)
-    private String Password;
+    private String password;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
