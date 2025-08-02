@@ -29,7 +29,6 @@ public class JwtAuthenticationFilter implements GatewayFilter {
 
     private final JwtUtil jwtUtil;
     private final RouteValidator routeValidator;
-    private final RedisTokenService redisTokenService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override

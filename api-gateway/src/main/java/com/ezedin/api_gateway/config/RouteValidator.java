@@ -13,7 +13,11 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 @Slf4j
 public class RouteValidator {
-    public static final List<String> openRequests = List.of("/api/auth/signup/student");
+    public static final List<String> openRequests = List.of(
+            "/api/auth/signup/student",
+            "/api/auth/login",
+            "/api/auth/signup/teacher"
+    );
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     public Predicate<ServerHttpRequest> isSecured =
             request -> {

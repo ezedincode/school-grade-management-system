@@ -7,29 +7,35 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtUtil {
     @Value("${SECRET_KEY}")
     private String jwtSecret;
-    // In JwtUtil, add this debug:
-    @PostConstruct
-    public void logKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        log.info("JWT Key (Hex): {}", Hex.encodeHexString(keyBytes));
-    }
+    private final redisService redis;
+
     public boolean isTokenValid(String token) {
         try {
             Claims claims = extractAllClaims(token);
-            return !isTokenExpired(claims);  // Check expiration
+            String jti=getJti(token);
+            if(!redis.isAccessTokenValid(jti)) {
+                return false;
+            }
+            if(isTokenExpired(claims)){
+                redis.revokeAccessToken(token);
+            }
+            return !isTokenExpired(claims);
         } catch (JwtException | IllegalArgumentException e) {
             log.error("JWT validation failed: {}", e.getMessage());
             return false;
@@ -52,7 +58,5 @@ public class JwtUtil {
     public String getJti(String token) {
         return extractAllClaims(token).getId(); // jti field
     }
-    private boolean isExpired (String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
-    }
+
 }
