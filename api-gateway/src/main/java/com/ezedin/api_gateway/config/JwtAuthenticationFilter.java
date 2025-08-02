@@ -5,8 +5,10 @@ import com.ezedin.api_gateway.Service.RedisTokenService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -23,55 +25,35 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+public class JwtAuthenticationFilter implements GatewayFilter {
 
     private final JwtUtil jwtUtil;
+    private final RouteValidator routeValidator;
     private final RedisTokenService redisTokenService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    @PostConstruct
-    public void init() {
-        log.info("✅ JwtAuthenticationFilter registered with order: {}", this.getOrder());
-    }
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        log.info("Incoming request path: {}", path);
-
-        List<String> publicPaths = List.of(
-                "/api/auth/**",
-                "/api/health/**",
-                "/api/docs/**",
-                "/swagger-ui/**",
-                "/v3/api-docs/**"
-        );
-
-        boolean isPublic = publicPaths.stream().anyMatch(p -> pathMatcher.match(p, path));
-        log.info("Is public endpoint: {}", isPublic);
-
-        if (isPublic) {
+        if (!routeValidator.isSecured.test(request)) {
+            log.info("Bypassing security for open endpoint: {}", path);
             return chain.filter(exchange);
         }
+        if(routeValidator.isSecured.test(request)){
+            String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                log.warn("Missing or invalid Authorization header");
+                return unauthorized(exchange, "Missing or invalid Authorization header");
+            }
+            String token = authHeader.substring(7);
+            log.info("Token: {}", token);
+            if (!jwtUtil.isTokenValid(token)) {
+                log.warn("Invalid JWT token");
+                return unauthorized(exchange, "Invalid JWT token");
+            }
 
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header");
-            return unauthorized(exchange, "Missing or invalid Authorization header");
         }
-
-        String token = authHeader.substring(7);
-        if (!jwtUtil.isTokenValid(token)) {
-            log.warn("Invalid JWT token");
-            return unauthorized(exchange, "Invalid JWT token");
-        }
-
-        String jti = jwtUtil.getJti(token);
-        if (jti == null || !redisTokenService.isTokenPresent(jti)) {
-            log.warn("Token revoked or expired");
-            return unauthorized(exchange, "Token revoked or expired");
-        }
-
         return chain.filter(exchange);
     }
 
@@ -82,8 +64,4 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
 }
