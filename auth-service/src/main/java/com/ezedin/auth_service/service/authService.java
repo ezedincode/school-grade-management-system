@@ -1,5 +1,6 @@
 package com.ezedin.auth_service.service;
 
+import com.ezedin.auth_service.exception.InvalidTokenException;
 import com.ezedin.auth_service.exception.MissingRequiredFieldsException;
 import com.ezedin.auth_service.model.User;
 import com.ezedin.auth_service.model.dto.*;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -63,7 +65,6 @@ public class authService {
     }
     public void logOut (String authHeader){
         String token = authHeader.substring(7);
-        String jti = jwtService.extractJti(token);
         String username = jwtService.extractUserId(token);
         User user =repository.findByUserName(username);
         Long userId=0L;
@@ -71,8 +72,12 @@ public class authService {
              userId =user.getUserId();
         }
         log.info("logged out {}",userId);
+        String jti= jwtService.extractJti(token);
         redisService.revokeAccessToken(jti);
         redisService.revokeRefreshToken(userId.toString());
+        String refreshToken= redisService.getRefreshToken(userId.toString());
+        String sessionId = refreshToken.split(":")[0];
+        redisService.revokeSessionId(sessionId);
     }
 
     private static studentRegisteredEvent getStudentRegisteredEvent(studentRegistrationRequest student,authenticationResponse user) {
@@ -104,14 +109,16 @@ public class authService {
     @Value("${Refresh_Token_Expiration_Time}")
     private Long  refreshTokenExpirationTime;
     public authenticationResponse mapToResponse(User user) {
+        String sessionId =jwtService.generateSessionId();
        authenticationResponse response= authenticationResponse .builder()
                  .accessToken(jwtService.generateToken(new HashMap<>(),user))
-                 .refreshToken(jwtService.generateRefreshToken())
+                 .refreshToken(jwtService.generateRefreshToken(sessionId))
                  .user(user)
                  .build();
 
         redisService.storeAccessToken(jwtService.extractJti(response.getAccessToken()),user.getUserId().toString(),ExpirationTime);
         redisService.storeRefreshToken(user.getUserId().toString(),response.getRefreshToken(),refreshTokenExpirationTime);
+        redisService.storeSessionId(sessionId,user.getUserId().toString(),refreshTokenExpirationTime);
         return response;
     }
     public authenticationResponse saveUser (userRegistrationRequest request) throws UserNameExistException, MissingRequiredFieldsException {
@@ -136,4 +143,36 @@ public class authService {
     public UserDetails getUserByUserName(String userName) {
         return repository.findByUserName(userName);
     }
+
+    public authenticationResponse refresh(Token refreshToken) throws InvalidTokenException {
+
+
+
+        String sessionId = refreshToken.getToken().split(":")[0];
+        String userIdStr = redisService.getUserId(sessionId);
+        if (userIdStr == null) {
+            throw new InvalidTokenException("User ID not found for refresh token");
+        }
+
+        Long userId;
+        try {
+            userId = Long.valueOf(userIdStr);
+        } catch (NumberFormatException e) {
+            throw new InvalidTokenException("Invalid user ID format");
+        }
+        if (!redisService.isRefreshTokenValid(userId.toString()) {
+            throw new InvalidTokenException("Refresh token is invalid or expired");
+        }
+
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        redisService.revokeAccessToken(sessionId);
+        String newAccessToken = jwtService.generateToken(new HashMap<>(), user);
+
+        return authenticationResponse.builder()
+                .accessToken(newAccessToken)
+                .build();
+    }
+
 }

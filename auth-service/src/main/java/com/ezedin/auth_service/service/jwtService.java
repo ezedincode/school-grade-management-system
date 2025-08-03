@@ -40,14 +40,20 @@ public class jwtService {
 
     @Value("${REFRESH_TOKEN_BYTE_LENGTH}")
     private int byteLength;
-    public String generateRefreshToken() {
+    public String generateRefreshToken(String sessionId) {
        byte[] randomBytes = new byte[byteLength];
        secureRandom.nextBytes(randomBytes);
-       return base64Encoder.encodeToString(randomBytes);
+       return "sessionId:" + base64Encoder.encodeToString(randomBytes);
+    }
+    public String generateSessionId(){
+        byte[] bytes = new byte[16];
+        secureRandom.nextBytes(bytes);
+        return base64Encoder.encodeToString(bytes);
     }
     public String extractJti(String token) {
         return extractAllClaims(token).getId(); // getId() returns the 'jti' claim
     }
+
 
 
     //    public <T> T extractClaim(String token, Function<Claims ,T> claimResolver) {

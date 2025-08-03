@@ -1,7 +1,6 @@
 package com.ezedin.api_gateway.config;
 
 import com.ezedin.api_gateway.Service.JwtUtil;
-import com.ezedin.api_gateway.Service.RedisTokenService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

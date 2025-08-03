@@ -23,21 +23,34 @@ public class redisService {
         String key = "refresh:" + userId;
         redisTemplate.opsForValue().set(key, refreshToken, expirationSeconds, TimeUnit.SECONDS);
     }
+    public void storeSessionId(String sessionId,String userId, Long expirationSeconds) {
+        String key = "sessionId:" + sessionId;
+        redisTemplate.opsForValue().set(key, userId, expirationSeconds, TimeUnit.SECONDS);
+    }
 
     public boolean isAccessTokenValid(String jti) {
         return redisTemplate.hasKey("access:" + jti);
     }
 
-    public boolean isRefreshTokenValid(String userId, String refreshToken) {
-        String stored = redisTemplate.opsForValue().get("refresh:" + userId);
-        return refreshToken.equals(stored);
+    public boolean isRefreshTokenValid(String userId) {
+        String stored = redisTemplate.opsForValue().get("refresh:"+userId);
+        return stored != null;
+    }
+    public String getUserId(String sessionId) {
+        return redisTemplate.opsForValue().get("sessionId:"+sessionId);
     }
 
     public void revokeAccessToken(String jti) {
         redisTemplate.delete("access:" + jti);
     }
+    public String getRefreshToken(String userId) {
+        return redisTemplate.opsForValue().get("refresh:"+userId);
+    }
 
     public void revokeRefreshToken(String userId) {
         redisTemplate.delete("refresh:" + userId);
+    }
+    public void revokeSessionId(String sessionId) {
+        redisTemplate.delete("sessionId:" + sessionId);
     }
 }
