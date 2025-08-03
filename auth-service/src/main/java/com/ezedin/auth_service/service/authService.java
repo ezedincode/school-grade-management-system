@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -71,13 +72,14 @@ public class authService {
         if(user != null){
              userId =user.getUserId();
         }
+        String sessionId = jwtService.extractExtraClaims(token, "sessionId");
         log.info("logged out {}",userId);
         String jti= jwtService.extractJti(token);
         redisService.revokeAccessToken(jti);
-        redisService.revokeRefreshToken(userId.toString());
-        String refreshToken= redisService.getRefreshToken(userId.toString());
-        String sessionId = refreshToken.split(":")[0];
+        redisService.revokeRefreshToken(sessionId);
+        redisService.removeSessionFromUser(userId.toString(),sessionId);
         redisService.revokeSessionId(sessionId);
+        redisService.revokeJti(sessionId);
     }
 
     private static studentRegisteredEvent getStudentRegisteredEvent(studentRegistrationRequest student,authenticationResponse user) {
@@ -110,15 +112,20 @@ public class authService {
     private Long  refreshTokenExpirationTime;
     public authenticationResponse mapToResponse(User user) {
         String sessionId =jwtService.generateSessionId();
+        String jti = UUID.randomUUID().toString();
+        HashMap<String,Object> extraClaims = new HashMap<>();
+        extraClaims.put("sessionId", sessionId);
        authenticationResponse response= authenticationResponse .builder()
-                 .accessToken(jwtService.generateToken(new HashMap<>(),user))
+                 .accessToken(jwtService.generateToken(extraClaims,user,jti))
                  .refreshToken(jwtService.generateRefreshToken(sessionId))
                  .user(user)
                  .build();
 
         redisService.storeAccessToken(jwtService.extractJti(response.getAccessToken()),user.getUserId().toString(),ExpirationTime);
-        redisService.storeRefreshToken(user.getUserId().toString(),response.getRefreshToken(),refreshTokenExpirationTime);
+        redisService.storeRefreshToken(sessionId,response.getRefreshToken(),refreshTokenExpirationTime);
+        redisService.addSessionForUser(user.getUserId().toString(),sessionId);
         redisService.storeSessionId(sessionId,user.getUserId().toString(),refreshTokenExpirationTime);
+        redisService.storeJti(jti,sessionId,refreshTokenExpirationTime);
         return response;
     }
     public authenticationResponse saveUser (userRegistrationRequest request) throws UserNameExistException, MissingRequiredFieldsException {
@@ -160,15 +167,21 @@ public class authService {
         } catch (NumberFormatException e) {
             throw new InvalidTokenException("Invalid user ID format");
         }
-        if (!redisService.isRefreshTokenValid(userId.toString()) {
+        if (!redisService.isRefreshTokenValid(sessionId)) {
             throw new InvalidTokenException("Refresh token is invalid or expired");
         }
 
         User user = repository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        redisService.revokeAccessToken(sessionId);
-        String newAccessToken = jwtService.generateToken(new HashMap<>(), user);
+        HashMap<String,Object> extraClaims = new HashMap<>();
+        extraClaims.put("sessionId", sessionId);
+        String jti=redisService.getJti(sessionId);
+        String newJti = UUID.randomUUID().toString();
+        redisService.revokeAccessToken(jti);
+        redisService.revokeJti(sessionId);
+        String newAccessToken = jwtService.generateToken(extraClaims, user,newJti);
+        redisService.storeAccessToken(newJti,userId.toString(),ExpirationTime);
+        redisService.storeJti(newJti,sessionId,refreshTokenExpirationTime);
 
         return authenticationResponse.builder()
                 .accessToken(newAccessToken)

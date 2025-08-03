@@ -22,8 +22,8 @@ public class jwtService {
 
     @Value("${SECRET_KEY}")
     private String SECRET_KEY;
-    public String generateToken(HashMap<String, Object> extraClaims, User user) {
-        String jti = UUID.randomUUID().toString();
+    public String generateToken(HashMap<String, Object> extraClaims, User user,String jti) {
+
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -49,6 +49,10 @@ public class jwtService {
         byte[] bytes = new byte[16];
         secureRandom.nextBytes(bytes);
         return base64Encoder.encodeToString(bytes);
+    }
+    public String extractExtraClaims(String token, String Key) {
+        Claims claims = extractAllClaims(token);
+        return claims.get(Key, String.class);
     }
     public String extractJti(String token) {
         return extractAllClaims(token).getId(); // getId() returns the 'jti' claim
