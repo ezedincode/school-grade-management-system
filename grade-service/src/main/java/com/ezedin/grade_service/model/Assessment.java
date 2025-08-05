@@ -1,7 +1,7 @@
 package com.ezedin.grade_service.model;
 
-import com.ezedin.grade_service.model.enums.GradeTitle;
 import jakarta.persistence.*;
+import com.ezedin.grade_service.model.enums.courseCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,24 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Entity
-public class Grade {
+public class Assessment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long studentId;
+    @Enumerated(EnumType.STRING)
+    private courseCode courseCode;
 
-
-    @Column(nullable = false)
-    private Long teacherID;
-
-    @Column(nullable = false)
     private Float score;
-
-    @ManyToOne
-    @JoinColumn(name = "assessment_id")
-    private Assessment assessment;
-
 
 }
