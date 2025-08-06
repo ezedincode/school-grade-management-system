@@ -1,23 +1,15 @@
 package com.ezedin.grade_service.model.dto;
 
-import com.ezedin.grade_service.model.enums.AssessmentType;
 import com.ezedin.grade_service.model.enums.courseCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class gradeRequest {
+public class markRequest {
     private Long studentId;
-
+    private Long teacherId;
     private courseCode courseCode;
-
-    private Long teacherID;
-
-    private AssessmentType assessmentType;
-
-    private Float score;
 }

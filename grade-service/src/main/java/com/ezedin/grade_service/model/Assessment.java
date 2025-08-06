@@ -1,5 +1,6 @@
 package com.ezedin.grade_service.model;
 
+import com.ezedin.grade_service.model.enums.AssessmentType;
 import jakarta.persistence.*;
 import com.ezedin.grade_service.model.enums.courseCode;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,9 @@ public class Assessment {
     @Enumerated(EnumType.STRING)
     private courseCode courseCode;
 
-    private Float score;
+    private Float maxScore;
+
+    @Enumerated(EnumType.STRING)
+    private AssessmentType assessmentType;
 
 }

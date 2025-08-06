@@ -39,13 +39,6 @@ public class Student {
     @Column(nullable = false)
     private String phone_no;
 
-//    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-//    @JoinColumn(name="grade_id")
-//    private Grade grade;
-//
-//    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-//    @JoinColumn(name="section_id")
-//    private Section section;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private GradeName grade;

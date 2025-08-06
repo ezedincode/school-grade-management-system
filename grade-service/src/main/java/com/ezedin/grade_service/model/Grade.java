@@ -1,6 +1,5 @@
 package com.ezedin.grade_service.model;
 
-import com.ezedin.grade_service.model.enums.GradeTitle;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
