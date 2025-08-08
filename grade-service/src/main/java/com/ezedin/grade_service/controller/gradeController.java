@@ -1,5 +1,6 @@
 package com.ezedin.grade_service.controller;
 
+import com.ezedin.grade_service.exception.IncompleteGradesException;
 import com.ezedin.grade_service.model.dto.gradeRequest;
 import com.ezedin.grade_service.model.dto.gradeResponse;
 import com.ezedin.grade_service.model.dto.markRequest;
@@ -26,7 +27,12 @@ public class gradeController {
         return createdGrade;
     }
     @GetMapping("/total")
-    public Float getTotal(@RequestBody markRequest request) {
+    public String getTotal(@RequestBody markRequest request) {
+        try{
         return service.calculateFinalGrade(request.getStudentId(),request.getCourseCode());
+    }catch (IncompleteGradesException e){
+        return e.getMessage();
+        }
+
     }
 }
