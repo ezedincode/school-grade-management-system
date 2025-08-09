@@ -1,9 +1,16 @@
 package com.ezedin.grade_service.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
 public class TermResult {
     @Id
@@ -13,8 +20,7 @@ public class TermResult {
     @Column(nullable = false)
     private Long studentId;
 
-    @Column(nullable = false)
-    private String termId;
+
 
 
     @Column(nullable = false)
@@ -23,8 +29,6 @@ public class TermResult {
     @Column(nullable = false)
     private Float average;
 
-    @Column(nullable = false)
-    private Integer coursesCount;
 
     @Column(nullable = false)
     private LocalDateTime calculatedAt;

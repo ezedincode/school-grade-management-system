@@ -5,14 +5,13 @@ import com.ezedin.grade_service.exception.InvalidGradeException;
 import com.ezedin.grade_service.model.Assessment;
 import com.ezedin.grade_service.model.CourseResult;
 import com.ezedin.grade_service.model.Grade;
-import com.ezedin.grade_service.model.dto.gradeRequest;
-import com.ezedin.grade_service.model.dto.gradeResponse;
-import com.ezedin.grade_service.model.dto.studentResponse;
-import com.ezedin.grade_service.model.dto.teacherResponse;
+import com.ezedin.grade_service.model.TermResult;
+import com.ezedin.grade_service.model.dto.*;
 import com.ezedin.grade_service.model.enums.courseCode;
 import com.ezedin.grade_service.repository.assessmentRepository;
 import com.ezedin.grade_service.repository.gradeRepository;
 import com.ezedin.grade_service.repository.resultRepository;
+import com.ezedin.grade_service.repository.termResultRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +36,7 @@ public class gradeService {
     private final WebClient teacherWebClient;
     private final assessmentRepository assessmentRepository;
     private final resultRepository resultRepository;
+    private final termResultRepository termResultRepository;
 
     private Grade mapToDto (gradeRequest gradeRequest) {
         return Grade.builder()
@@ -67,19 +67,23 @@ public class gradeService {
                 .bodyToMono(new ParameterizedTypeReference<List<teacherResponse>>() {})
                 .block();
     }
-
-    @Transactional
-    public gradeResponse createGrade(gradeRequest request) throws InvalidGradeException {
-        // 1. Validate student-teacher relationship (your original checks)
-        studentResponse student = getStudent(request.getStudentId());
-        List<teacherResponse> teachers = getTeacher(request.getTeacherID());
+    public boolean validateUser(Long studentId, Long teacherId) {
+        studentResponse student = getStudent(studentId);
+        List<teacherResponse> teachers = getTeacher(teacherId);
 
         boolean foundGradeMatch = teachers.stream()
                 .anyMatch(e -> e.getGrade().equals(student.getGrade()));
         boolean foundSectionMatch = teachers.stream()
                 .anyMatch(e -> e.getSection().equals(student.getSection()));
 
-        if (!(foundGradeMatch && foundSectionMatch && request.getScore() != null)) {
+        return foundGradeMatch && foundSectionMatch;
+    }
+
+    @Transactional
+    public gradeResponse createGrade(gradeRequest request) throws InvalidGradeException {
+
+
+        if (!(validateUser(request.getStudentId(),request.getTeacherID()) && request.getScore() != null) ){
             return null;
         }
 
@@ -113,8 +117,7 @@ public class gradeService {
         }
         grade = gradeRepository.save(grade);
 
-        log.info("student: {}", student.getGrade());
-        log.info("teacher: {}", teachers);
+
 
         return mapToGrade(grade);
     }
@@ -160,34 +163,62 @@ public class gradeService {
                 totalEarned += g.getScore();
             }
         }
+        CourseResult courseResult=resultRepository.findByCourseCode(courseCode);
+        if(courseResult == null) {
+            saveTotal(studentId,courseCode,totalEarned);
+        }
 
-        saveTotal(studentId,courseCode,totalEarned);
         return "Total : " + totalEarned;
     }
     public void saveTotal (Long studentId,courseCode courseCode ,Float totalMark)  {
 
-        CourseResult courseResult=resultRepository.findByStudentId(studentId);
-        int version=0;
-        if(courseResult!=null){
-            version=courseResult.getVersion() + 1;
-            courseResult.setVersion(version);
-            courseResult.setTotalScore(totalMark);
-            courseResult.setLastUpdated(LocalDateTime.now());
-            resultRepository.save(courseResult);
-        }
-        else {
-
-
             resultRepository.save(CourseResult.builder()
                     .studentId(studentId)
                     .totalScore(totalMark)
-                    .version(version)
                     .courseCode(courseCode)
                     .lastUpdated(LocalDateTime.now())
                     .build());
         }
+
+    @Transactional
+    public Float calculateTermResult(termGradeRequest request) throws IncompleteGradesException {
+
+        if (request.getStudentId() == null || request.getNoOdCourses() <= 0) {
+            throw new IllegalArgumentException("Invalid input parameters");
+        }
+
+        List<CourseResult> results = resultRepository.findAllByStudentId(request.getStudentId());
+
+        if (results.size() != request.getNoOdCourses()) {
+            throw new IncompleteGradesException(
+                    String.format("Incomplete grades. Expected %d courses, found %d",
+                            request.getNoOdCourses(), results.size())
+            );
+        }
+
+        Float totalMark = results.stream()
+                .map(CourseResult::getTotalScore)
+                .reduce(0f, Float::sum);
+
+        saveTermTotal(request.getStudentId(), totalMark, request.getNoOdCourses());
+
+        return totalMark;
     }
 
+    @Transactional
+    public void saveTermTotal(Long studentId, Float totalMark, int courses) {
+        Float average = totalMark / courses;
+
+        TermResult termResult = (TermResult) termResultRepository.findByStudentId(studentId)
+                .orElseGet(TermResult::new);
+
+        termResult.setStudentId(studentId);
+        termResult.setTotalScore(totalMark);
+        termResult.setAverage(average);
+        termResult.setCalculatedAt(LocalDateTime.now());
+
+        termResultRepository.save(termResult);
+    }
     }
 
 

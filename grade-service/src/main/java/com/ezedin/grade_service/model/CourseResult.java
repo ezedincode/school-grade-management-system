@@ -33,7 +33,4 @@ public class CourseResult {
 
     @Column(nullable = false)
     private LocalDateTime lastUpdated;
-
-    @Version
-    private Integer version;
 }

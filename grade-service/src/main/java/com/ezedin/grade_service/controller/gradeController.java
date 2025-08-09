@@ -4,6 +4,7 @@ import com.ezedin.grade_service.exception.IncompleteGradesException;
 import com.ezedin.grade_service.model.dto.gradeRequest;
 import com.ezedin.grade_service.model.dto.gradeResponse;
 import com.ezedin.grade_service.model.dto.markRequest;
+import com.ezedin.grade_service.model.dto.termGradeRequest;
 import com.ezedin.grade_service.service.gradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,15 @@ public class gradeController {
         return service.calculateFinalGrade(request.getStudentId(),request.getCourseCode());
     }catch (IncompleteGradesException e){
         return e.getMessage();
+        }
+
+    }
+    @GetMapping("/termTotal")
+    public String getTermTotal(@RequestBody termGradeRequest request) {
+        try{
+            return service.calculateTermResult(request).toString();
+        }catch (IncompleteGradesException e){
+            return e.getMessage();
         }
 
     }
