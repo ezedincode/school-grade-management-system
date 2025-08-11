@@ -1,13 +1,12 @@
 package com.ezedin.grade_service.controller;
 
 import com.ezedin.grade_service.exception.IncompleteGradesException;
-import com.ezedin.grade_service.model.dto.gradeRequest;
-import com.ezedin.grade_service.model.dto.gradeResponse;
-import com.ezedin.grade_service.model.dto.markRequest;
-import com.ezedin.grade_service.model.dto.termGradeRequest;
+import com.ezedin.grade_service.model.dto.*;
 import com.ezedin.grade_service.service.gradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/grade")
@@ -45,4 +44,10 @@ public class gradeController {
         }
 
     }
+    @GetMapping("/gradeReport")
+    public List<gradeReportResponse> getGradeReport(@RequestBody  gradeReportRequest request) {
+        return service.gradeReport(request);
+
+    }
+
 }

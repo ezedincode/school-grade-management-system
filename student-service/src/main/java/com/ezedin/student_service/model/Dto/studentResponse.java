@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class studentResponse {
+    private Long id;
     private String name;
     private int age;
     private Gender gender;

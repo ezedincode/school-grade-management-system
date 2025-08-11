@@ -6,7 +6,10 @@ import com.ezedin.grade_service.model.Assessment;
 import com.ezedin.grade_service.model.CourseResult;
 import com.ezedin.grade_service.model.Grade;
 import com.ezedin.grade_service.model.TermResult;
+import com.ezedin.grade_service.config.courses;
 import com.ezedin.grade_service.model.dto.*;
+import com.ezedin.grade_service.model.enums.GradeName;
+import com.ezedin.grade_service.model.enums.SectionName;
 import com.ezedin.grade_service.model.enums.courseCode;
 import com.ezedin.grade_service.repository.assessmentRepository;
 import com.ezedin.grade_service.repository.gradeRepository;
@@ -20,9 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ public class gradeService {
     private final assessmentRepository assessmentRepository;
     private final resultRepository resultRepository;
     private final termResultRepository termResultRepository;
+    private final courses courses;
 
     private Grade mapToDto (gradeRequest gradeRequest) {
         return Grade.builder()
@@ -84,6 +86,7 @@ public class gradeService {
 
 
         if (!(validateUser(request.getStudentId(),request.getTeacherID()) && request.getScore() != null) ){
+            log.info("inside if");
             return null;
         }
 
@@ -104,7 +107,6 @@ public class gradeService {
 
         Grade grade;
         if (existingGrade.isPresent()) {
-            // Update existing grade
             grade = existingGrade.get();
             grade.setScore(request.getScore());
         } else {
@@ -117,7 +119,7 @@ public class gradeService {
         }
         grade = gradeRepository.save(grade);
 
-
+        log.info("grade created {}", grade);
 
         return mapToGrade(grade);
     }
@@ -134,7 +136,10 @@ public class gradeService {
         assessment.setCourseCode(request.getCourseCode());
         assessment.setAssessmentType(request.getAssessmentType());
         assessment.setMaxScore(maxScore);
-        return assessmentRepository.save(assessment);
+
+         Assessment assessment1= assessmentRepository.save(assessment);
+        log.info("assessment created{} " , assessment);
+        return assessment1;
     }
     public String calculateFinalGrade(Long studentId, courseCode courseCode) throws IncompleteGradesException {
         List<Assessment> assessments = assessmentRepository.findByCourseCode(courseCode);
@@ -163,7 +168,8 @@ public class gradeService {
                 totalEarned += g.getScore();
             }
         }
-        CourseResult courseResult=resultRepository.findByCourseCode(courseCode);
+        CourseResult courseResult=resultRepository.findByCourseCodeAndStudentId(courseCode,studentId);
+        log.info("course result: {}", courseResult);
         if(courseResult == null) {
             saveTotal(studentId,courseCode,totalEarned);
         }
@@ -219,6 +225,71 @@ public class gradeService {
 
         termResultRepository.save(termResult);
     }
+    public List<studentResponse> getStudentByGradeAndSection(GradeName gradeName,SectionName sectionName) {
+        return studentWebClient.get()
+                .uri("/api/student/admin/{grade}/{section}", gradeName,sectionName)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<studentResponse>>() {})
+                .block();
+    }
+
+    public List<gradeReportResponse> gradeReport (gradeReportRequest request) {
+        List<studentResponse> response =getStudentByGradeAndSection(request.getGrade(),request.getSection());
+        List<gradeReportResponse> reports = new ArrayList<>();
+
+        List<Long> studentIds=response.stream().map(studentResponse::getId).toList();
+        log.info("studentIds: {}", studentIds);
+
+        Map<String,String> map =rank(studentIds);
+        for(studentResponse r : response){
+            reports.add(gradeReportResponse.builder()
+                            .studentName(r.getName())
+                            .grade(r.getGrade())
+                            .section(r.getSection())
+                            .courseMark(MapToCourseMark(r,request.getGrade(),request.getSection()))
+                            .total(termResultRepository.findTotalScoreByStudentId(r.getId()).getTotalScore())
+                            .rank(map.get(r.getId().toString()))
+                    .build());
+        }
+        return reports;
+    }
+    public Map<String,String> rank(List<Long> studentIds) {
+
+        List<Long> Ids =termResultRepository.findStudentIdsOrderByAverageDesc(studentIds);
+        Map<String,String> map = new HashMap<>();
+        Integer rank = 1;
+        for (Long studentId : Ids) {
+            map.put(studentId.toString(),rank.toString());
+            rank++;
+        }
+
+        return  map;
+    }
+    public List<courseMark> MapToCourseMark(studentResponse response,GradeName gradeName, SectionName sectionName) {
+        List<String> Courses;
+        List<courseCode> courseCodes = new ArrayList<>();
+        if (EnumSet.of(GradeName.Grade_1, GradeName.Grade_2, GradeName.Grade_3, GradeName.Grade_4).contains(gradeName)){
+            Courses=courses.getOneToFour().stream().toList();
+        }else if (EnumSet.of(GradeName.Grade_5, GradeName.Grade_6).contains(gradeName)) {
+            Courses = courses.getFiveToSix().stream().toList();;
+        } else if (EnumSet.of(GradeName.Grade_7, GradeName.Grade_8).contains(gradeName)) {
+            Courses = courses.getSevenToEight().stream().toList();;
+        } else {
+            Courses = List.of();
+        }
+        for(String course:Courses){
+            courseCodes.add(courseCode.valueOf(course));
+        }
+        List<courseMark> courseMarks = new ArrayList<>();
+        for (courseCode c  : courseCodes) {
+            courseMarks.add(courseMark.builder()
+                            .courseCode(c)
+                            .mark(resultRepository.findByStudentIdAndCourseCode(response.getId(),c).getTotalScore().toString())
+                    .build());
+        }
+        return courseMarks;
+    }
+
     }
 
 

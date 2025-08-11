@@ -41,6 +41,7 @@ public class studentService {
     }
     private studentResponse mapToStudent (Student student) {
         return studentResponse.builder()
+                .id(student.getId())
                 .age(student.getAge())
                 .name(student.getName())
                 .gender(student.getGender())

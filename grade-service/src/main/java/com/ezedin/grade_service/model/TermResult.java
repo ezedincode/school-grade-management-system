@@ -20,9 +20,6 @@ public class TermResult {
     @Column(nullable = false)
     private Long studentId;
 
-
-
-
     @Column(nullable = false)
     private Float totalScore;
 
